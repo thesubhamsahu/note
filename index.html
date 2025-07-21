@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Note </title>
-    <!-- MODIFIED: Added the website icon (favicon) -->
     <link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBhNrAUUBuQrInQ2dWlk_8C7v9GkUmwJ0z1X8gYkR7gy-YkLfLyy_et0w&s=10">
 
     <style>
@@ -54,21 +53,20 @@
             white-space: nowrap;
         }
 
-        /* MODIFIED: Set a fixed width for the counter displays to prevent resizing */
         .counter-display {
             background-color: #333333;
             color: #f0f0f0;
             border: 1px solid #4a4a4a;
             border-radius: 4px;
-            padding: 6px 10px; /* Adjusted padding */
-            width: 120px;      /* Set a fixed width */
+            padding: 6px 10px;
+            width: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
             cursor: default;
             white-space: nowrap;
-            text-align: center; /* Ensure text is centered */
+            text-align: center;
         }
 
         #read-aloud-btn:hover, #copy-btn:hover, #save-note-btn:hover, #print-btn:hover {
@@ -79,14 +77,12 @@
             background-color: #a13333;
         }
         
-        /* Shared icon styles */
         #read-aloud-btn svg, #copy-btn svg, #clear-btn svg, #save-note-btn svg, #print-btn svg {
             width: 16px;
             height: 16px;
             fill: #f0f0f0;
         }
 
-        /* Logic to toggle play/pause icons (Unchanged) */
         .icon-pause { display: none; }
         #read-aloud-btn.is-playing .icon-play { display: none; }
         #read-aloud-btn.is-playing .icon-pause { display: block; }
@@ -153,10 +149,9 @@
             justify-content: space-between; 
             align-items: center; 
             gap: 10px; 
-            border-left: 3px solid transparent; /* Placeholder for active border */
+            border-left: 3px solid transparent;
             transition: background-color 0.2s, border-color 0.2s;
         }
-        /* MODIFIED: Added style for the active note */
         .note-item.active {
             background-color: #2a2a3a;
             border-left: 3px solid #6a6aff;
@@ -214,7 +209,6 @@
             pointer-events: none;
         }
         
-        /* --- Highlighting Styles (Unchanged) --- */
         .highlight-word, .highlight-sentence {
             border-radius: 3px;
             transition: background-color 0.2s ease-in-out;
@@ -301,7 +295,7 @@
             const categoryDropdown = document.getElementById('category-dropdown');
 
             // State tracking variables
-            let currentlyEditingId = null; // To track the ID of the note being edited
+            let currentlyEditingId = null; 
             const originalSaveButtonContent = saveNoteBtn.innerHTML;
 
             // Speech synthesis state
@@ -374,12 +368,10 @@
                 }
             });
             
-            // MODIFIED: This button now handles both deleting all notes and deleting a specific category
             deleteAllBtn.addEventListener('click', () => {
                 const notes = JSON.parse(localStorage.getItem('myNotes') || '[]');
                 const selectedCategory = categoryFilter.value;
 
-                // --- CATEGORY DELETION LOGIC ---
                 if (selectedCategory) {
                     const notesInCategory = notes.filter(note => note.category === selectedCategory).length;
                     if (notesInCategory === 0) {
@@ -387,7 +379,6 @@
                         return;
                     }
                     if (confirm(`Are you sure you want to delete all ${notesInCategory} notes in the "${selectedCategory}" category? This action cannot be undone.`)) {
-                        // Check if a note from the category being deleted is currently in the editor
                         if(currentlyEditingId) {
                             const noteBeingEdited = notes.find(n => n.id === currentlyEditingId);
                             if(noteBeingEdited && noteBeingEdited.category === selectedCategory) {
@@ -397,17 +388,14 @@
                             }
                         }
                         
-                        // Filter out notes from the selected category
                         const updatedNotes = notes.filter(note => note.category !== selectedCategory);
                         localStorage.setItem('myNotes', JSON.stringify(updatedNotes));
                         
-                        // Reset filter and re-render everything
                         categoryFilter.value = '';
-                        updateDeleteButtonState(); // Update button back to "Delete All"
+                        updateDeleteButtonState();
                         renderSavedNotes();
                         renderCategoryDropdowns();
                     }
-                // --- "DELETE ALL" LOGIC (Original functionality) ---
                 } else {
                     if (notes.length === 0) {
                         alert('There are no notes to delete.');
@@ -424,16 +412,14 @@
                 }
             });
 
-
             categoryDropdown.addEventListener('change', () => {
                 categoryInput.value = categoryDropdown.value;
             });
             
-            // MODIFIED: Added listener to sync filter with input, re-render, and update the delete button
             categoryFilter.addEventListener('change', () => {
                 const selectedCategory = categoryFilter.value;
-                categoryInput.value = selectedCategory; // Sync input with filter
-                updateDeleteButtonState(); // Update the delete button text/title
+                categoryInput.value = selectedCategory;
+                updateDeleteButtonState();
                 renderSavedNotes(selectedCategory);
             });
 
@@ -544,43 +530,40 @@
             });
             
             printBtn.addEventListener('click', () => {
-                const textToPrint = notepad.innerText;
-                if (textToPrint.trim() === '') {
-                    alert("There is nothing to print.");
-                    return;
-                }
+                const notepadText = notepad.innerText.trim();
+                const selectedCategory = categoryFilter.value;
 
-                const iframe = document.createElement('iframe');
-                iframe.style.position = 'absolute';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                iframe.style.left = '-9999px'; 
+                if (notepadText === '' && selectedCategory) {
+                    const notes = JSON.parse(localStorage.getItem('myNotes') || '[]');
+                    const notesToPrint = notes.filter(note => note.category === selectedCategory);
 
-                iframe.onload = function() {
-                    try {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                    } catch (e) {
-                        console.error('Print failed:', e);
-                        alert('Could not open print dialog. Please check your browser settings or pop-up blocker.');
+                    if (notesToPrint.length === 0) {
+                        alert(`There are no notes in the "${selectedCategory}" category to print.`);
+                        return;
                     }
 
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 500); 
-                };
+                    let combinedNotesHtml = `<h1>Notes from Category: ${selectedCategory}</h1>`;
+                    notesToPrint.forEach((note, index) => {
+                        if (index > 0) {
+                           combinedNotesHtml += `<hr style="border-top: 1px dashed #ccc; margin: 20px 0;">`;
+                        }
+                        combinedNotesHtml += `
+                            <div style="page-break-inside: avoid; margin-top: 20px;">
+                                <h3>Note ${index + 1}</h3>
+                                <pre>${note.text}</pre>
+                            </div>
+                        `;
+                    });
+                    
+                    printContent(combinedNotesHtml);
 
-                document.body.appendChild(iframe);
-
-                const doc = iframe.contentWindow.document;
-                doc.open();
-                doc.write('<!DOCTYPE html><html><head><title>Print Note</title>');
-                doc.write('<style>@media print { @page { size: A4; margin: 2cm; } body { font-family: "Courier New", Courier, monospace; font-size: 12pt; color: #000; } pre { white-space: pre-wrap; word-wrap: break-word; } }</style>');
-                doc.write('</head><body>');
-                doc.write('<pre>' + textToPrint + '</pre>');
-                doc.write('</body></html>');
-                doc.close(); 
+                } else {
+                    if (notepadText === '') {
+                        alert("There is nothing to print.");
+                        return;
+                    }
+                    printContent('<pre>' + notepadText + '</pre>');
+                }
             });
             
             saveNoteBtn.addEventListener('click', () => {
@@ -628,7 +611,58 @@
 
             // --- Helper Functions ---
 
-            // MODIFIED: New function to control the state of the main delete button
+            function printContent(content) {
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.style.left = '-9999px';
+
+                iframe.onload = function() {
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } catch (e) {
+                        console.error('Print failed:', e);
+                        alert('Could not open print dialog. Please check your browser settings or pop-up blocker.');
+                    }
+
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 500);
+                };
+
+                document.body.appendChild(iframe);
+
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write('<!DOCTYPE html><html><head><title>Print Note</title>');
+                // --- MODIFICATION HERE ---
+                // Removed background, border, and padding from the 'pre' style to eliminate the box.
+                doc.write(`
+                    <style>
+                        @media print { 
+                            @page { size: A4; margin: 2cm; } 
+                            body { font-family: sans-serif; font-size: 12pt; color: #000; } 
+                            h1 { font-size: 24pt; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px; }
+                            h3 { font-size: 14pt; margin-bottom: 5px; }
+                            pre { 
+                                white-space: pre-wrap; 
+                                word-wrap: break-word; 
+                                font-family: 'Courier New', Courier, monospace;
+                                font-size: 11pt;
+                            }
+                            hr { border: none; border-top: 1px dashed #ccc; margin: 40px 0; }
+                        }
+                    </style>
+                `);
+                doc.write('</head><body>');
+                doc.write(content);
+                doc.write('</body></html>');
+                doc.close();
+            }
+
             function updateDeleteButtonState() {
                 const selectedCategory = categoryFilter.value;
                 if (selectedCategory) {
@@ -693,7 +727,7 @@
                 });
                 
                 categoryFilter.value = currentFilter; 
-                updateDeleteButtonState(); // Ensure delete button is correct on re-render
+                updateDeleteButtonState();
             }
 
             function renderSavedNotes(filter = '') {
@@ -725,11 +759,10 @@
                     return;
                 }
                 
-                // If filtering, we don't need the main "Uncategorized" header unless it's the filter itself
                 const displayCategories = filter ? [filter] : sortedCategories;
 
                 displayCategories.forEach(category => {
-                    if (!groupedNotes[category]) return; // Skip if category has no notes after filtering
+                    if (!groupedNotes[category]) return;
 
                     const groupContainer = document.createElement('div');
                     groupContainer.className = 'category-group';
