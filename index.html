@@ -541,18 +541,17 @@
                         alert(`There are no notes in the "${selectedCategory}" category to print.`);
                         return;
                     }
-
-                    let combinedNotesHtml = `<h1>Notes from Category: ${selectedCategory}</h1>`;
+                    
+                    // --- MODIFICATION HERE ---
+                    // Changed the heading to only show the category name.
+                    let combinedNotesHtml = `<h1>${selectedCategory}</h1>`; 
                     notesToPrint.forEach((note, index) => {
                         if (index > 0) {
                            combinedNotesHtml += `<hr style="border-top: 1px dashed #ccc; margin: 20px 0;">`;
                         }
-                        combinedNotesHtml += `
-                            <div style="page-break-inside: avoid; margin-top: 20px;">
-                                <h3>Note ${index + 1}</h3>
-                                <pre>${note.text}</pre>
-                            </div>
-                        `;
+                        // --- MODIFICATION HERE ---
+                        // Removed the "Note X" heading and the surrounding div for a cleaner look.
+                        combinedNotesHtml += `<pre>${note.text}</pre>`;
                     });
                     
                     printContent(combinedNotesHtml);
@@ -638,8 +637,6 @@
                 const doc = iframe.contentWindow.document;
                 doc.open();
                 doc.write('<!DOCTYPE html><html><head><title>Print Note</title>');
-                // --- MODIFICATION HERE ---
-                // Removed background, border, and padding from the 'pre' style to eliminate the box.
                 doc.write(`
                     <style>
                         @media print { 
@@ -652,6 +649,8 @@
                                 word-wrap: break-word; 
                                 font-family: 'Courier New', Courier, monospace;
                                 font-size: 11pt;
+                                /* Added page-break-inside to avoid cutting notes in half */
+                                page-break-inside: avoid;
                             }
                             hr { border: none; border-top: 1px dashed #ccc; margin: 40px 0; }
                         }
